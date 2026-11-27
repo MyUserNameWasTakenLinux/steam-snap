@@ -3,7 +3,6 @@
 # Launcher init #
 #################
 
-# shellcheck disable=SC2034
 START=$(date +%s.%N)
 
 if ! snapctl is-connected "gaming-graphics-core26"; then
@@ -23,10 +22,6 @@ function ensure_dir_exists() {
 }
 
 declare -A PIDS
-function async_exec() {
-  "$@" &
-  PIDS[$!]=$*
-}
 function wait_for_async_execs() {
   for pid in "${!PIDS[@]}"
   do
@@ -58,7 +53,6 @@ if [[ -f "$XDG_CONFIG_HOME/user-dirs.dirs.md5sum" ]]; then
     needs_update=true
   fi
 else
-  # shellcheck disable=SC2034
   needs_update=true
 fi
 
@@ -139,12 +133,6 @@ function strip_unreachable_dirs() {
 
   export "${!var}=${tmp}"
   unset tmp
-}
-
-function is_subpath() {
-  dir="$(realpath "$1")"
-  parent="$(realpath "$2")"
-  [ "${dir##"$parent"/}" != "$dir" ] && return 0 || return 1
 }
 
 append_dir PATH "$SNAP_DESKTOP_RUNTIME/usr/bin"
@@ -281,7 +269,6 @@ if [[ -n "$XDG_RUNTIME_DIR" && -z "$DISABLE_WAYLAND" ]]; then
     if [ -S "$wayland_sockpath" ]; then
         # if running under wayland, use it
         #export WAYLAND_DEBUG=1
-        # shellcheck disable=SC2034
         wayland_available=true
         # create the compat symlink for now
         if [ ! -e "$wayland_snappath" ]; then
@@ -303,9 +290,6 @@ fi
 export PIPEWIRE_CONFIG_DIR="$SNAP_DESKTOP_RUNTIME/usr/share/pipewire"
 export PIPEWIRE_MODULE_DIR="$SNAP_DESKTOP_RUNTIME/usr/lib/$ARCH/pipewire-0.3"
 export SPA_PLUGIN_DIR="$SNAP_DESKTOP_RUNTIME/usr/lib/$ARCH/spa-0.2"
-
-# Keep an array of data dirs, for looping through them
-IFS=':' read -r -a data_dirs_array <<< "$XDG_DATA_DIRS"
 
 if [ "$needs_update" = true ]; then
   rm -rf "$XDG_DATA_HOME"/{themes,.themes}

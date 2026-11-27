@@ -21,3 +21,29 @@ jobs:
       with:
         name: 'snap'
         path: ${{ steps.snapcraft.outputs.snap}}
+  test:
+    needs: snap
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        repository: canonical/gaming-graphics-test-suite
+        path: tests/suite
+    - uses: actions/download-artifact@v4
+      with:
+        name: 'snap'
+        path: artifact
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y xvfb
+    - name: Set up snaps
+      run: |
+        sudo snap install core26
+        sudo snap install gaming-graphics-core26 --channel=kisak-fresh/stable
+        sudo snap install --dangerous artifact/*.snap
+        sudo snap connect steam:gaming-graphics-core26 gaming-graphics-core26:gaming-graphics-core26
+        for plug in opengl x11 desktop home; do
+          sudo snap connect "steam:$plug"
+        done
+    - name: Run tests
+      run: |
+        xvfb-run -a snap run --shell steam.steam -c "$PWD/tests/suite/src/run-all.sh"

@@ -194,10 +194,10 @@ if [ -e "/var/lib/snapd/lib/gl/vdpau/libvdpau_nvidia.so" ]; then
 fi
 
 # Export Vulkan ICD filename paths
-unset VK_ICD_FILENAMES
-append_file VK_ICD_FILENAMES "/var/lib/snapd/lib/vulkan/icd.d/nvidia_icd.json"
+unset VK_DRIVER_FILES
+append_file VK_DRIVER_FILES "/var/lib/snapd/lib/vulkan/icd.d/nvidia_icd.json"
 for _f in "$SNAP"/graphics/usr/share/vulkan/icd.d/*_icd*.json; do
-  append_file VK_ICD_FILENAMES "$_f"
+  append_file VK_DRIVER_FILES "$_f"
 done
 unset _f
 
@@ -425,9 +425,12 @@ if [[ "$1" == *"/bin_steam.sh" ]] && [ "$(snapctl get gamepadui 2>/dev/null)" = 
 fi
 
 "$@"
+STATUS=$?
 
 if [ -n "$GAMEPADUI_WATCHDOG_PID" ]; then
     kill "$GAMEPADUI_WATCHDOG_PID" 2>/dev/null
 fi
 
-killall steam-runtime-launcher-service
+killall -q steam-runtime-launcher-service || true
+
+exit "$STATUS"
